@@ -1,0 +1,467 @@
+[
+    {
+        "id": "3fccfd6b2e99c7da",
+        "type": "tab",
+        "label": "Beacon Proximity Changes",
+        "disabled": false,
+        "info": "Flow that receives any changes to the proximity value as captured by the bedroom ESP32. The flow then signals to the ESP32 to turn on or off the lights"
+    },
+    {
+        "id": "0ff052ff45c3b392",
+        "type": "mqtt in",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "topic": "BeaconNearby",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "5fdcebb4f1dd5b6a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 400,
+        "y": 780,
+        "wires": [
+            [
+                "2f9de27f4dfc69d0",
+                "9cd075e54db941cc"
+            ]
+        ]
+    },
+    {
+        "id": "fa9555f79dd3c07a",
+        "type": "mqtt out",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "topic": "",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "5fdcebb4f1dd5b6a",
+        "x": 1490,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "2f9de27f4dfc69d0",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "948e1390456c5579",
+        "type": "function",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Set Topic & openSwitch",
+        "func": "msg.topic = \"Lights/ON\";\nflow.set('openSwitch',msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\nflow.set('openSwitch',\"false\");",
+        "finalize": "",
+        "libs": [],
+        "x": 1050,
+        "y": 460,
+        "wires": [
+            [
+                "251599d588242b6c",
+                "1a82e867400f4b61",
+                "f3d97cea29dbe67c"
+            ]
+        ]
+    },
+    {
+        "id": "efe6f4b96540340d",
+        "type": "influxdb out",
+        "z": "3fccfd6b2e99c7da",
+        "influxdb": "6614264a5ff0f83e",
+        "name": "Nearby Measurement",
+        "measurement": "nearby",
+        "precision": "",
+        "retentionPolicy": "",
+        "database": "bedroomlights",
+        "precisionV18FluxV20": "ms",
+        "retentionPolicyV18Flux": "",
+        "org": "organisation",
+        "bucket": "bucket",
+        "x": 1760,
+        "y": 480,
+        "wires": []
+    },
+    {
+        "id": "1a82e867400f4b61",
+        "type": "function",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Format for InfluxDB",
+        "func": "if (msg.payload == \"true\") {\n    msg.payload = {\n        nearby: true\n    }\n} else if (msg.payload == \"false\") {\n    msg.payload = {\n        nearby: false\n    }\n}\nmsg.topic = \"newestStatus\"\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1370,
+        "y": 560,
+        "wires": [
+            [
+                "2ba7d6a782fa5a60"
+            ]
+        ]
+    },
+    {
+        "id": "2ba7d6a782fa5a60",
+        "type": "rbe",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 1550,
+        "y": 560,
+        "wires": [
+            [
+                "1db27e82826ff837",
+                "efe6f4b96540340d"
+            ]
+        ]
+    },
+    {
+        "id": "1db27e82826ff837",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1710,
+        "y": 600,
+        "wires": []
+    },
+    {
+        "id": "6eaf982df2b7627a",
+        "type": "inject",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Manual Stop",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "Lights/status",
+        "payload": "false",
+        "payloadType": "str",
+        "x": 490,
+        "y": 440,
+        "wires": [
+            [
+                "fe9d3deac8a3102d"
+            ]
+        ]
+    },
+    {
+        "id": "f0d3ea9af6a45909",
+        "type": "inject",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Manual Start",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "Lights/status",
+        "payload": "true",
+        "payloadType": "str",
+        "x": 490,
+        "y": 400,
+        "wires": [
+            [
+                "fe9d3deac8a3102d"
+            ]
+        ]
+    },
+    {
+        "id": "251599d588242b6c",
+        "type": "rbe",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "func": "rbe",
+        "gap": "",
+        "start": "",
+        "inout": "out",
+        "septopics": true,
+        "property": "payload",
+        "topi": "topic",
+        "x": 1330,
+        "y": 360,
+        "wires": [
+            [
+                "fa9555f79dd3c07a"
+            ]
+        ]
+    },
+    {
+        "id": "f3d97cea29dbe67c",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1370,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "3e53874cab5c14b8",
+        "type": "comment",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Manual states always trump and have no conditional comparisons",
+        "info": "",
+        "x": 630,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "2f6cce2ee27f0972",
+        "type": "mqtt in",
+        "z": "3fccfd6b2e99c7da",
+        "name": "App Manual Switch",
+        "topic": "Lights/manualSwitch",
+        "qos": "0",
+        "datatype": "auto",
+        "broker": "5fdcebb4f1dd5b6a",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "x": 470,
+        "y": 300,
+        "wires": [
+            [
+                "fe9d3deac8a3102d"
+            ]
+        ]
+    },
+    {
+        "id": "9cd075e54db941cc",
+        "type": "set-shared-state",
+        "z": "3fccfd6b2e99c7da",
+        "state": "53f54c7daea0c637",
+        "name": "Beacon State",
+        "triggerOnInit": true,
+        "provideOutput": true,
+        "outputs": 1,
+        "x": 620,
+        "y": 700,
+        "wires": [
+            [
+                "d6c962ec2214fa14"
+            ]
+        ]
+    },
+    {
+        "id": "3dc40f7f031d109c",
+        "type": "get-shared-state",
+        "z": "3fccfd6b2e99c7da",
+        "state": "53f54c7daea0c637",
+        "name": "Beacon State",
+        "triggerOnInit": false,
+        "x": 750,
+        "y": 540,
+        "wires": [
+            [
+                "dfa73014aaa4ec72",
+                "948e1390456c5579"
+            ]
+        ]
+    },
+    {
+        "id": "dfa73014aaa4ec72",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "d6c962ec2214fa14",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 820,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "fe9d3deac8a3102d",
+        "type": "set-shared-state",
+        "z": "3fccfd6b2e99c7da",
+        "state": "628bf4ec183a13f6",
+        "name": "Manual State",
+        "triggerOnInit": true,
+        "provideOutput": true,
+        "outputs": 1,
+        "x": 820,
+        "y": 360,
+        "wires": [
+            [
+                "7a646c80b9c6c540",
+                "948e1390456c5579"
+            ]
+        ]
+    },
+    {
+        "id": "7a646c80b9c6c540",
+        "type": "debug",
+        "z": "3fccfd6b2e99c7da",
+        "name": "Manul Incoming",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1040,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "a3cbb227b1965cbe",
+        "type": "comment",
+        "z": "3fccfd6b2e99c7da",
+        "name": "rbe isn't needed anymore",
+        "info": "The state gates are already preventing messages being sent unless a new value is presented",
+        "x": 1380,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "5fdcebb4f1dd5b6a",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "120",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "6614264a5ff0f83e",
+        "type": "influxdb",
+        "hostname": "influxdb",
+        "port": "8086",
+        "protocol": "http",
+        "database": "bedroomlights",
+        "name": "BedroomLights",
+        "usetls": false,
+        "tls": "",
+        "influxdbVersion": "1.8-flux",
+        "url": "http://influxdb:8086",
+        "rejectUnauthorized": false
+    },
+    {
+        "id": "53f54c7daea0c637",
+        "type": "shared-state",
+        "name": "beaconState",
+        "lbl": "Beacon State",
+        "tags": "",
+        "historyCount": "1",
+        "dataType": "bool",
+        "boolType": "str",
+        "boolStrTrue": "true",
+        "boolStrFalse": "false",
+        "precision": "",
+        "numMin": "",
+        "numMax": "",
+        "unit": ""
+    },
+    {
+        "id": "628bf4ec183a13f6",
+        "type": "shared-state",
+        "name": "manualState",
+        "lbl": "Manual State",
+        "tags": "",
+        "historyCount": "0",
+        "dataType": "bool",
+        "boolType": "str",
+        "boolStrTrue": "false",
+        "boolStrFalse": "true",
+        "precision": "",
+        "numMin": "",
+        "numMax": "",
+        "unit": ""
+    }
+]
